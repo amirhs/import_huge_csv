@@ -8,7 +8,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 
-class UploadCSVController extends AbstractController
+class EmployeeController extends AbstractController
 {
     private CSVUploadService $uploadService;
 
@@ -17,7 +17,7 @@ class UploadCSVController extends AbstractController
         $this->uploadService = $uploadService;
     }
 
-    #[Route('/upload/csv', methods: ['POST'])]
+    #[Route('/api/employee', methods: ['POST'])]
     public function upload(Request $request): JsonResponse
     {
         $file = $request->files->get('file');

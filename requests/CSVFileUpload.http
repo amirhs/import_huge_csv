@@ -1,5 +1,5 @@
 # curl -X POST -F "file=@/path/to/your/file.csv" http://localhost:8002/upload/csv
-POST http://localhost:8002/upload/csv
+POST http://localhost:8002/api/employee
 Content-Type: multipart/form-data; boundary=WebAppBoundary
 
 --WebAppBoundary
