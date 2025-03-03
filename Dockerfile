@@ -19,7 +19,7 @@ RUN apt-get update && apt-get install -y \
     libjpeg-dev \
     libfreetype6-dev \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install gd pdo xml
+    && docker-php-ext-install gd pdo pdo_mysql xml
 
 COPY --chown=www-data:www-data . /app
 
