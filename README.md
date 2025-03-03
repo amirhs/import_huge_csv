@@ -21,7 +21,7 @@
 
 ---
 
-### Build and Run
+### Run the App
 ```shell
 docker compose -p localbrandx up -d
 ```
@@ -44,7 +44,35 @@ curl -X POST -F "file=@/home/amir/Downloads/import.csv" http://localhost:8002/ap
 
 ### To Import the File
 ```shell
-curl -X POST http://localhost:8002/api/employee/import/1
+curl -X POST http://localhost:8002/api/employee/import/2
 ```
 
+**Endpoints:**
+```http
+GET /api/employee/{employeeId}
+DELETE /api/employee/{employeeId}
+```
 
+### Get Employee
+```shell
+curl -X GET http://localhost:8002/api/employee/470143
+```
+
+```json 
+{
+    "id": 12,
+    "employeeId": "198429",
+    "email": "serafina.bumgarner@exxonmobil.com"
+}
+```
+
+### Delete Employee
+```shell
+curl -X DELETE http://localhost:8002/api/employee/470143
+```
+
+```json 
+{
+  "message": "Employee with EmployeeID 470143 has been deleted."
+}
+```
