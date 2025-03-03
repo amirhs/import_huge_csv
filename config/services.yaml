@@ -27,3 +27,12 @@ services:
     App\Service\CSVUploadService:
         arguments:
             $csvUploadDir: '%csv_upload_dir%'
+
+    App\Service\CsvImportService:
+        arguments:
+            $csvUploadDir: '%csv_upload_dir%'
+
+    App\MessageHandler\ProcessCsvBatchJobHandler:
+        arguments:
+            $connection: '@doctrine.dbal.default_connection'
+            $logger: '@logger'

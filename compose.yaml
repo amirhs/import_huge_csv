@@ -8,6 +8,7 @@ services:
     restart: unless-stopped
     depends_on:
       - database
+      - rabbitmq
     networks:
       - app_network
     volumes:
@@ -36,6 +37,19 @@ services:
       - mysql_data:/var/lib/mysql
     networks:
       - app_network
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    networks:
+      - app_network
+    ports:
+      - "15672:15672"
+      - "5672:5672"
 
 networks:
   app_network:
