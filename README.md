@@ -44,7 +44,7 @@ curl -X POST -F "file=@/home/amir/Downloads/import.csv" http://localhost:8002/ap
 
 ### To Import the File
 ```shell
-curl -X POST http://localhost:8002/api/employee/import/2
+curl -X POST http://localhost:8002/api/employee/import/1
 ```
 
 **Endpoints:**

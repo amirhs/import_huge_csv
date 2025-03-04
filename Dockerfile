@@ -3,6 +3,7 @@ FROM php:8.2-fpm
 WORKDIR /app
 
 RUN apt-get update && apt-get install -y \
+    cron \
     libxml2-dev \
     unzip \
     git \
@@ -14,7 +15,8 @@ RUN apt-get update && apt-get install -y \
     && pecl install amqp \
     && docker-php-ext-enable amqp \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install gd pdo pdo_mysql xml
+    && docker-php-ext-install gd pdo pdo_mysql xml \
+    && rm -rf /var/lib/apt/lists/*
 
 RUN echo "upload_max_filesize=500M\npost_max_size=500M\nmax_execution_time=300\nmemory_limit=2G" > /usr/local/etc/php/conf.d/custom.ini
 
@@ -29,6 +31,8 @@ RUN mkdir -p /app/var/uploads/csv && \
 
 USER www-data
 
-EXPOSE 8002
+COPY ./docker/cronjobs /tmp/symfony_cron
+RUN crontab /tmp/symfony_cron
 
-CMD ["php", "-S", "0.0.0.0:8002", "-t", "/app/public"]
+EXPOSE 8002
+#CMD ["php", "-S", "0.0.0.0:8002", "-t", "/app/public"]

@@ -1,0 +1,2 @@
+# Run every 1 minutes
+* * * * * cd /app && /usr/local/bin/php bin/console messenger:consume async --limit=10 >> /app/var/log/symfony_cron.log -e dev
