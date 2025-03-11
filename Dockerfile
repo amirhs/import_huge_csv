@@ -4,6 +4,8 @@ WORKDIR /app
 
 RUN apt-get update && apt-get install -y \
     cron \
+    procps \
+    netcat-traditional \
     libxml2-dev \
     unzip \
     git \
@@ -29,10 +31,10 @@ RUN composer install --no-interaction --no-progress --optimize-autoloader
 RUN mkdir -p /app/var/uploads/csv && \
     chown -R www-data:www-data /app/var/uploads /app/var/log /app/var/cache
 
-USER www-data
-
-COPY ./docker/cronjobs /tmp/symfony_cron
-RUN crontab /tmp/symfony_cron
+# Set up cron
+COPY docker/cronjobs /etc/cron.d/symfony_cron
+RUN chmod 0644 /etc/cron.d/symfony_cron
 
 EXPOSE 8002
-#CMD ["php", "-S", "0.0.0.0:8002", "-t", "/app/public"]
+
+# No CMD here - we'll use the command in docker-compose.yml

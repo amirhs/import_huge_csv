@@ -50,7 +50,7 @@ class EmployeeController extends AbstractController
 
         return $this->json([
             'id' => $employee->getId(),
-            'name' => $employee->getEmployeeId(),
+            'employee_id' => $employee->getEmployeeId(),
             'email' => $employee->getEmail(),
         ]);
     }
