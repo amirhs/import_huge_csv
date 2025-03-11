@@ -1,2 +1,4 @@
-# Run every 1 minutes
-* * * * * cd /app && /usr/local/bin/php bin/console messenger:consume async --limit=10 >> /app/var/log/symfony_cron.log -e dev
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+* * * * * root cd /app && if nc -z database 3306; then APP_ENV=dev php -d memory_limit=1G bin/console messenger:consume async --limit=100 --time-limit=100 >> /app/var/log/symfony_cron.log 2>&1; else echo "$(date): Database not available, skipping job" >> /app/var/log/symfony_cron.log; fi
+

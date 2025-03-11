@@ -15,7 +15,7 @@ class EmployeeService
         $this->entityManager = $entityManager;
     }
 
-    public function getEmployee(int $employeeId): ?Employee
+    public function getEmployee(string $employeeId): ?Employee
     {
         $employee = $this->entityManager->getRepository(Employee::class)
             ->findOneBy(['employeeId' => $employeeId]);

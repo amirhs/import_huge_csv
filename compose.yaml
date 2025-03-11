@@ -1,9 +1,14 @@
-
 services:
   app:
     build:
       context: .
       dockerfile: Dockerfile
+    init: true
+    healthcheck:
+      test: ["CMD", "bash", "/app/docker/healthcheck.sh"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
     container_name: app
     restart: unless-stopped
     depends_on:
@@ -21,7 +26,13 @@ services:
       PHP_MEMORY_LIMIT: 2G
     ports:
       - "8002:8002"
-    command: [ "sh", "-c", " php -S 0.0.0.0:8002 -t /app/public && php bin/console doctrine:migrations:migrate --no-interaction & while true; do php bin/console messenger:consume async --limit=100 >> /app/var/log/messenger.log 2>&1; sleep 10; done" ]
+    command: >
+      sh -c "
+        echo 'Starting cron daemon...' &&
+        /usr/sbin/cron &&
+        echo 'Cron started successfully' &&
+        php bin/console doctrine:migrations:migrate --no-interaction &&
+        php -S 0.0.0.0:8002 -t /app/public"
 
   database:
     image: mysql:8.0
@@ -38,6 +49,11 @@ services:
       - mysql_data:/var/lib/mysql
     networks:
       - app_network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   rabbitmq:
     image: rabbitmq:3-management
@@ -51,6 +67,11 @@ services:
     ports:
       - "15672:15672"
       - "5672:5672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 networks:
   app_network:
