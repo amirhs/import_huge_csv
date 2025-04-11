@@ -34,5 +34,6 @@ services:
 
     App\MessageHandler\ProcessCsvBatchJobHandler:
         arguments:
-            $connection: '@doctrine.dbal.default_connection'
+            $entityManager: '@doctrine.orm.entity_manager'
+            $employeeRepository: '@App\Repository\EmployeeRepository'
             $logger: '@logger'

@@ -2,20 +2,27 @@
 
 namespace App\MessageHandler;
 
+use App\Entity\Employee;
 use App\Message\ProcessCsvBatchJob;
-use Doctrine\DBAL\Connection;
+use App\Repository\EmployeeRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 use Psr\Log\LoggerInterface;
 
 #[AsMessageHandler]
 class ProcessCSVBatchJobHandler
 {
-    private Connection $connection;
+    private EntityManagerInterface $entityManager;
+    private EmployeeRepository $employeeRepository;
     private LoggerInterface $logger;
 
-    public function __construct(Connection $connection, LoggerInterface $logger)
-    {
-        $this->connection = $connection;
+    public function __construct(
+        EntityManagerInterface $entityManager,
+        EmployeeRepository $employeeRepository,
+        LoggerInterface $logger
+    ) {
+        $this->entityManager = $entityManager;
+        $this->employeeRepository = $employeeRepository;
         $this->logger = $logger;
     }
 
@@ -28,27 +35,34 @@ class ProcessCSVBatchJobHandler
             return;
         }
 
-        $values = [];
-        $params = [];
-
+        $batchSize = 0;
         foreach ($batch as $row) {
             if (!isset($row['Emp ID'], $row['E Mail'])) {
                 $this->logger->warning('Row missing name or email', $row);
                 continue;
             }
-            $values[] = '(?, ?)';
-            $params[] = $row['Emp ID'];
-            $params[] = $row['E Mail'];
+            
+            $employee = new Employee();
+            $employee->setEmployeeId($row['Emp ID']);
+            $employee->setEmail($row['E Mail']);
+            
+            $this->entityManager->persist($employee);
+            $batchSize++;
+            
+            // Flush every 20 entities to avoid memory issues with large batches
+            if ($batchSize % 20 === 0) {
+                $this->entityManager->flush();
+                $this->entityManager->clear();
+            }
         }
 
-        if (empty($values)) {
+        if ($batchSize === 0) {
             $this->logger->warning('No valid rows to insert.');
             return;
         }
 
-        $sql = 'INSERT INTO employee (employee_id, email) VALUES ' . implode(', ', $values);
-
-        $affected = $this->connection->executeStatement($sql, $params);
-        unset($batch, $values, $params);
+        // Final flush for any remaining entities
+        $this->entityManager->flush();
+        $this->logger->info('Successfully imported ' . $batchSize . ' employees');
     }
 }
