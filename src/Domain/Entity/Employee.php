@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Entity;
+namespace App\Domain\Entity;
 
 use App\Repository\EmployeeRepository;
 use Doctrine\ORM\Mapping as ORM;
@@ -15,35 +15,35 @@ class Employee
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    private ?string $employeeId = null;
+    private string $employeeId;
 
-    public function getEmployeeId(): ?string
-    {
-        return $this->employeeId;
-    }
-
-    public function setEmployeeId(?string $employeeId): void
+    public function __construct(string $employeeId, string $email)
     {
         $this->employeeId = $employeeId;
+        $this->email = $email;
     }
-
-    #[ORM\Column(length: 255)]
-    private ?string $email = null;
 
     public function getId(): ?int
     {
         return $this->id;
     }
 
-    public function getEmail(): ?string
+    public function getEmployeeId(): string
+    {
+        return $this->employeeId;
+    }
+
+    #[ORM\Column(length: 255)]
+    private string $email;
+
+    public function getEmail(): string
     {
         return $this->email;
     }
 
-    public function setEmail(string $email): static
+    public function setEmail(string $email): self
     {
         $this->email = $email;
-
         return $this;
     }
 }

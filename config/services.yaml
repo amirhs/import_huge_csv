@@ -32,7 +32,55 @@ services:
         arguments:
             $csvUploadDir: '%csv_upload_dir%'
 
-    App\MessageHandler\ProcessCsvBatchJobHandler:
+    # App\MessageHandler\ProcessCsvBatchJobHandler:
+    #     arguments:
+    #         $connection: '@doctrine.dbal.default_connection'
+    #         $logger: '@logger'
+
+
+
+    App\Domain\Repository\CsvBatchRepository:
+        class: App\Infrastructure\Persistence\DoctrineCsvBatchRepository
         arguments:
-            $connection: '@doctrine.dbal.default_connection'
-            $logger: '@logger'
+            - '@doctrine.orm.entity_manager'
+            
+    # Message handlers
+    App\Infrastructure\Messaging\ProcessCsvBatchHandler:
+        arguments:
+            - '@App\Domain\Repository\CsvBatchRepository'
+        tags: ['messenger.message_handler']
+
+    # Repository implementations
+    App\Domain\Repository\CsvFileRepository:
+        class: App\Infrastructure\Persistence\DoctrineCsvFileRepository
+        arguments:
+            - '@doctrine.orm.entity_manager'
+            
+    # Application services
+    App\Application\Service\CSVUploadService:
+        arguments:
+            - '%csv_upload_dir%'
+            - '@App\Domain\Repository\CsvFileRepository'
+
+    # Command and Query buses
+    App\Application\Bus\CommandBusInterface:
+        class: App\Infrastructure\Bus\SimpleCommandBus
+        arguments:
+            - '@service_container'
+            - [] # handler mapping
+            
+    App\Application\Bus\QueryBusInterface:
+        class: App\Infrastructure\Bus\SimpleQueryBus
+        arguments:
+            - '@service_container'
+            - [] # handler mapping
+            
+    # Command handlers
+    App\Application\CommandHandler\:
+        resource: '../src/Application/CommandHandler'
+        autowire: true
+        
+    # Query handlers
+    App\Application\QueryHandler\:
+        resource: '../src/Application/QueryHandler'
+        autowire: true

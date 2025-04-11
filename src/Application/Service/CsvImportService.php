@@ -3,7 +3,7 @@
 namespace App\Service;
 
 use App\Entity\CsvFile;
-use App\Message\ProcessCsvBatchJob;
+use App\Infrastructure\Messaging\ProcessCsvBatchJob;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Messenger\MessageBusInterface;

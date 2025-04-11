@@ -26,6 +26,9 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 COPY --chown=www-data:www-data . /app
 
+# Fix Git ownership issues
+RUN git config --global --add safe.directory /app
+
 RUN composer install --no-interaction --no-progress --optimize-autoloader
 
 RUN mkdir -p /app/var/uploads/csv && \

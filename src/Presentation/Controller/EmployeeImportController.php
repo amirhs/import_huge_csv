@@ -1,27 +1,27 @@
 <?php
 
-namespace App\Controller;
+namespace App\Presentation\Controller;
 
-use App\Service\CsvImportService;
+use App\Application\Bus\CommandBusInterface;
+use App\Application\Command\ImportCsvCommand;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 
 class EmployeeImportController extends AbstractController
 {
-    private CsvImportService $csvImportService;
+    private CommandBusInterface $commandBus;
 
-    public function __construct(CsvImportService $csvImportService)
+    public function __construct(CommandBusInterface $commandBus)
     {
-        $this->csvImportService = $csvImportService;
+        $this->commandBus = $commandBus;
     }
 
     #[Route('/api/employee/import/{fileId}', methods: ['POST'])]
     public function import(int $fileId): JsonResponse
     {
         try {
-            $this->csvImportService->import($fileId);
+            $this->commandBus->dispatch(new ImportCsvCommand($fileId));
             return new JsonResponse(['message' => 'Import started']);
         } catch (\Exception $e) {
             return new JsonResponse(['error' => $e->getMessage()], 400);

@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Service;
+namespace App\Application\Service;
 
-use App\Entity\CsvFile;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Domain\Entity\CsvFile;
+use App\Domain\Repository\CsvFileRepository;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\Filesystem\Filesystem;
 
@@ -11,13 +11,15 @@ class CSVUploadService
 {
     private string $csvUploadDir;
     private Filesystem $filesystem;
-    private EntityManagerInterface $entityManager;
+    private CsvFileRepository $csvFileRepository;
 
-    public function __construct(string $csvUploadDir, EntityManagerInterface $entityManager)
-    {
+    public function __construct(
+        string $csvUploadDir, 
+        CsvFileRepository $csvFileRepository
+    ) {
         $this->csvUploadDir = $csvUploadDir;
         $this->filesystem = new Filesystem();
-        $this->entityManager = $entityManager;
+        $this->csvFileRepository = $csvFileRepository;
     }
 
     public function upload(UploadedFile $file): string
@@ -32,8 +34,7 @@ class CSVUploadService
         $file->move($this->csvUploadDir, $filename);
 
         $csvFile = new CsvFile($filename);
-        $this->entityManager->persist($csvFile);
-        $this->entityManager->flush();
+        $this->csvFileRepository->save($csvFile);
 
         return $filePath;
     }

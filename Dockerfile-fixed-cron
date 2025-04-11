@@ -1,0 +1,82 @@
+FROM php:8.2-fpm
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y \
+    cron \
+    procps \
+    netcat-traditional \
+    libxml2-dev \
+    unzip \
+    git \
+    curl \
+    libpng-dev \
+    libjpeg-dev \
+    libfreetype6-dev \
+    librabbitmq-dev \
+    && pecl install amqp \
+    && docker-php-ext-enable amqp \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install gd pdo pdo_mysql xml \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN echo "upload_max_filesize=500M\npost_max_size=500M\nmax_execution_time=300\nmemory_limit=2G" > /usr/local/etc/php/conf.d/custom.ini
+
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+COPY --chown=www-data:www-data . /app
+
+RUN composer install --no-interaction --no-progress --optimize-autoloader
+
+# Create directories and set permissions
+RUN mkdir -p /app/var/log && \
+    mkdir -p /app/var/uploads/csv && \
+    touch /app/var/log/symfony_cron.log && \
+    touch /var/log/cron.log && \
+    chown -R www-data:www-data /app/var/uploads /app/var/log /app/var/cache && \
+    chmod 777 /app/var/log/symfony_cron.log && \
+    chmod 777 /var/log/cron.log
+
+# Create debug script for cron with database check and verbose output
+RUN echo '#!/bin/bash\n\
+echo "$(date): Starting messenger job" >> /var/log/cron.log\n\
+# Wait for database\n\
+while ! nc -z database 3306; do\n\
+    echo "$(date): Waiting for database..." >> /var/log/cron.log\n\
+    sleep 5\n\
+done\n\
+echo "$(date): Database is available, running messenger:consume" >> /var/log/cron.log\n\
+cd /app && /usr/local/bin/php bin/console messenger:consume async --limit=10 -vv >> /app/var/log/symfony_cron.log 2>&1\n\
+echo "$(date): Finished messenger:consume" >> /var/log/cron.log' > /usr/local/bin/run-messenger.sh && \
+    chmod +x /usr/local/bin/run-messenger.sh
+
+# Set up cron configuration
+RUN echo 'SHELL=/bin/bash\n\
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin\n\
+* * * * * root /usr/local/bin/run-messenger.sh\n' > /etc/cron.d/symfony_cron && \
+    chmod 0644 /etc/cron.d/symfony_cron
+
+# Create wrapper script
+RUN echo '#!/bin/bash\n\
+trap "exit" TERM\n\
+while true; do\n\
+  php -S 0.0.0.0:8002 -t /app/public &\n\
+  wait $!\n\
+done' > /usr/local/bin/run-php.sh && \
+    chmod +x /usr/local/bin/run-php.sh
+
+# Create entrypoint script
+RUN echo '#!/bin/bash\n\
+\n\
+echo "[$(date)] Starting services..."\n\
+\n\
+# Start cron daemon in background\n\
+/usr/sbin/cron -f &\n\
+\n\
+# Start PHP server\n\
+/usr/local/bin/run-php.sh' > /usr/local/bin/docker-entrypoint.sh && \
+    chmod +x /usr/local/bin/docker-entrypoint.sh
+
+EXPOSE 8002
+
+CMD ["/usr/local/bin/docker-entrypoint.sh"]

@@ -1,0 +1,1 @@
+Mein Name ist Amir, und ich bin ein leidenschaftlicher Webentwickler mit Erfahrung in Backend-Technologien, insbesondere mit Java und Spring Boot. Ich habe ursprünglich mit PHP gearbeitet, bin aber vor einiger Zeit auf Java umgestiegen, da mich die Skalierbarkeit und Struktur größerer Systeme fasziniert."
