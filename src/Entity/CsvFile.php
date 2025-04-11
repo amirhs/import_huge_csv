@@ -16,6 +16,12 @@ class CsvFile
     #[ORM\Column(type: "string", unique: true)]
     private string $fileName;
 
+    #[ORM\Column(type: "string", length: 255, nullable: true)]
+    private ?string $originalFilename = null;
+
+    #[ORM\Column(type: "integer", nullable: true)]
+    private ?int $fileSize = null;
+
     #[ORM\Column(type: "string", length: 20)]
     private string $status = 'uploaded'; // Possible values: uploaded, importing, imported
 
@@ -37,6 +43,28 @@ class CsvFile
     public function getFileName(): string
     {
         return $this->fileName;
+    }
+
+    public function getOriginalFilename(): ?string
+    {
+        return $this->originalFilename;
+    }
+
+    public function setOriginalFilename(?string $originalFilename): self
+    {
+        $this->originalFilename = $originalFilename;
+        return $this;
+    }
+
+    public function getFileSize(): ?int
+    {
+        return $this->fileSize;
+    }
+
+    public function setFileSize(?int $fileSize): self
+    {
+        $this->fileSize = $fileSize;
+        return $this;
     }
 
     public function getStatus(): string
